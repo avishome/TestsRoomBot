@@ -22,19 +22,20 @@ def webhook(request):
     return "Tr"
 
 def WorkOnCvs():    
+    bot = telegram.Bot(token=Token)
     with open(get_file_path('onlyJson.csv'), 'w') as ne:
         with open(get_file_path('Fullfile.csv')) as f:
             f1=f.readlines()
-            x=-1
+            x=0
             header = ""
-            while (x+1)<len(f1) and "ת.ז." not in f1[x+1]:
+            while (x)<len(f1) and "ת.ז." not in f1[x]:
                 if "יום" in f1[x]:
                     header = f1[x]
                 x=x+1
             for y in range(len(f1)):
-                if(y>x):
+                if(y>=x):
                     ne.write(f1[y])
-    read_csv(get_file_path("onlyJson.csv"),get_file_path("file.json"))
+    read_csv(get_file_path("onlyJson.csv"),get_file_path("file.json"),"")
     with open(get_file_path("file.json"), "r") as f:
         Data = json.loads(f.read())    
     client = MongoClient(uri)
@@ -50,13 +51,17 @@ def WorkOnCvs():
         return "Fl"
     for doc in Users:
         for data in Data:
-            if data[TZ] == doc['levid']:
-                print(data[TZ])
-                bot.sendMessage(chat_id=doc['telegramuser'], text=header)
-                textForSend = "";
-                for y in data:
-                    textForSend += y+' : '+data[y]+"\n"
-                bot.sendMessage(chat_id=doc['telegramuser'], text=textForSend)
+            try:
+                if data[TZ] == doc['levid'] and doc['status'] == 4:
+                    print(data[TZ])
+                    bot.sendMessage(chat_id=doc['telegramuser'], text=header)
+                    textForSend = "";
+                    for y in data:
+                        textForSend += y+' : '+data[y]+"\n"
+                    bot.sendMessage(chat_id=doc['telegramuser'], text=textForSend)
+                    bot.sendMessage(chat_id=doc['telegramuser'], text="שים לב לתאריך הבחינה!!! \nלא לשכוח אישור נבחן")
+            except:
+                print("erorr cache")
 
 ##help functions				
 def read_csv(file, json_file):
